@@ -1,6 +1,17 @@
+# Editor settings
+.vscode
+.idea
+
+# Tex etc.
 examples/*.html
 examples/*.log
 examples/*.pdf
 examples/*.tex
 
-.vscode
+## Build files and binaries
+**/**.egg-info
+
+## Sphinx doc outputs
+**/build
+**/html
+**/doctrees

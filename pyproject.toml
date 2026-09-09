@@ -1,0 +1,31 @@
+[build-system]
+requires = ["setuptools >= 77.0.3"]
+build-backend = "setuptools.build_meta"
+
+[project]
+authors = [
+    { name = "Thomas Flynn", email = "thomas.flynn@durham.ac.uk" },
+    { name = "Emily Wilkinson", email = "emily.wilkinson@durham.ac.uk" },
+    { name = "Andrew Naden", email = "andrew.naden@durham.ac.uk" },
+    { name = "Ananya Gangopadhyay", email = "ananya.gangopadhyay@durham.ac.uk" },
+]
+
+name = "assessmenttemplate"
+version = "1.2"
+
+dependencies = [
+    "numpy",
+    "matplotlib",
+    "sphinx",
+    "sphinx-rtd-theme",
+    "sphinx-mdinclude",
+]
+
+requires-python = ">= 3.8"
+readme = "README.md"
+license = "MIT"
+license-files = ["LICENSE"]
+
+[project.urls]
+Repository = "https://github.com/SHAREing-DRI/assessment-template.git"
+Issues = "https://github.com/SHAREing-DRI/assessment-template/issues"
