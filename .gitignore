@@ -10,3 +10,8 @@ examples/*.tex
 
 ## Build files and binaries
 **/**.egg-info
+
+## Sphinx doc outputs
+**/build
+**/html
+**/doctrees
