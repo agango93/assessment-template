@@ -1,11 +1,12 @@
 import argparse as ap
+import os
 import assessmenttemplate.intranode as intranode
 import assessmenttemplate.summary as summary
 
 
 def _main():
     parser = ap.ArgumentParser(
-        prog="high_level-graphs.py",
+        prog=os.path.basename(__file__),
         description="Tools to generate plots for the high-level assessment.",
         epilog="Unless an output flag is specified, a requested output will be echoed to the standard console output."
     )
@@ -38,17 +39,17 @@ def _main():
     parser.add_argument("--show", action="store_true",
                         help="Show graph in window at runtime.")
 
-    sub_parsers = parser.add_subparsers(dest="metric", required=True, help="Metric for which plots are to be "
-                                                                           "generated.")
-    # Add plots per mode
+    sub_parsers = parser.add_subparsers(dest="mode", required=True, help="Mode pertaining to the high-level rubric for "
+                                                                         "which the plots are to be generated.")
+    # Add plots per rubric/mode
     intranode.intranode_add_args(sub_parsers)
     summary.summary_add_args(sub_parsers)
 
     args = parser.parse_args()
 
-    if args.metric == "intranode":
+    if args.mode == "intranode":
         intranode.intranode_main(args)
-    elif args.metric == "summary":
+    elif args.mode == "summary":
         summary.summary_main(args)
 
 
