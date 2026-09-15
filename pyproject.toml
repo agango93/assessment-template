@@ -19,6 +19,8 @@ dependencies = [
     "sphinx",
     "sphinx-rtd-theme",
     "sphinx-mdinclude",
+    "pandas",
+    "seaborn",
 ]
 
 requires-python = ">= 3.8"

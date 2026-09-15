@@ -1,101 +1,92 @@
 #!/usr/bin/env python3
 
 import matplotlib.pyplot as plt
-import numpy as np
+import pandas as pd
+import seaborn as sns
 import sys
 import os
+from io import StringIO
 
 
-def intranode_times_crit_80_60(times: list[tuple[int, float]]) -> tuple[float, float]:
-    """ 
-    Calculate the 80% and 60% critical proportions
+def intranode_compute_metrics(table: pd.DataFrame, verbose=False):
+    """
+    Process input table and compute parallel efficiency per core count
 
-    :param times: list of (core count, time taken in seconds)
+    :param table: Pandas dataframe containing time taken in seconds per core count
+    :param verbose: Verbose output if requested (and arguments are provided)
+    """
+    # Calculate speed-up and parallel efficiency
+    serial_time = table.loc[table["Cores"] == 1, "Time"].iloc[0]
+    table["Speed-up"] = serial_time / table["Time"]
+    table["Efficiency"] = table["Speed-up"] / table["Cores"]
+
+    if verbose:
+        print(f"Calculated efficiencies")
+
+
+def intranode_times_crit_80_60(table: pd.DataFrame, prop=False) -> tuple[float, float]:
+    """
+    Calculate the 80% and 60% critical points/proportions
+
+    :param table: Pandas dataframe containing parallel efficiency per core count
+    :param prop: Return porportional values instead of direct critical points
     :return: 80% proportion, 60% proportion
     """
-    # Extract core count and times from the list as separate arrays
-    times = np.transpose(np.array(times))
-    core_counts = times[0]
-    parallel_times = times[1]
-    serial_time = times[1][0] * core_counts[0]
 
-    # Calculate efficiency and 80%/60% critical core points
-    speed_up = serial_time / parallel_times
-    efficiency = speed_up / core_counts
+    # Calculate 80%/60% critical core points
 
-    p_crit_80 = float(max(core_counts[efficiency >= 0.8]))
-    p_crit_60 = float(max(core_counts[efficiency >= 0.6]))
+    p_crit_80 = table.loc[table["Efficiency"] >= 0.8, "Cores"].max()
+    p_crit_60 = table.loc[table["Efficiency"] >= 0.6, "Cores"].max()
 
-    intra_node_prop_80 = p_crit_80 / float(max(core_counts))
-    intra_node_prop_60 = p_crit_60 / float(max(core_counts))
+    if prop:
+        intra_node_prop_80 = float(p_crit_80 / table["Cores"].max())
+        intra_node_prop_60 = float(p_crit_60 / table["Cores"].max())
+        return intra_node_prop_80, intra_node_prop_60
 
-    return intra_node_prop_80, intra_node_prop_60
+    return p_crit_80, p_crit_60
 
 
-def intranode_times_to_graph(times: list[tuple[int, float]], args=None) -> plt.Figure:
+def intranode_times_to_graph(table: pd.DataFrame, critical_points=False, verbose=False) -> plt.Figure:
     """ 
-    Create matplotlib graph
+    Create seaborn graph
 
-    :param times: list of (core count, time taken in seconds)
-    :param args: arguments from arg parser
+    :param table: Pandas dataframe containing parallel efficiency per core count
+    :param critical_points: Add critical points to the graph
+    :param verbose: Verbose output if requested (and arguments are provided)
     :return: matplotlib figure
-
     """
 
-    # Extract core count and times from the list as separate arrays
-    times = np.transpose(np.array(times))
-    core_counts = times[0]
-    parallel_times = times[1]
-    serial_time = times[1][0] * core_counts[0]
-
-    # Calculate efficiency and 80%/60% critical core counts
-    speed_up = serial_time / parallel_times
-    efficiency = speed_up / core_counts
-    if args and args.verbose:
-        print(f"Calculated efficiencies: {efficiency}")
-
-    p_crit_80 = float(max(core_counts[efficiency >= 0.8]))
-    p_crit_60 = float(max(core_counts[efficiency >= 0.6]))
+    if verbose:
+        print("Plotting graph")
 
     fig, ax = plt.subplots()
     ax.set_xlabel(r'$p$')
     ax.set_ylabel(r'$E(p)$')
 
-    ax.axvline(x=p_crit_80, color="#ffc844", linestyle="--")
-    ax.text(p_crit_80, 0.05, "80%", rotation=90)
-    ax.axvline(x=p_crit_60, color="#e35555", linestyle="--")
-    ax.text(p_crit_60, 0.05, "60%", rotation=90)
-    ax.plot(core_counts, efficiency, '.-', color="black", linewidth=2)
+    sns.lineplot(data=table, x="Cores", y="Efficiency", color="black", ax=ax)
+
+    if critical_points:
+        if verbose:
+            print("Adding critical points to plot")
+        p_crit_80, p_crit_60 = intranode_times_crit_80_60(table)
+        ax.axvline(x=p_crit_80, color="#ffc844", linestyle="--")
+        ax.text(p_crit_80, 0.05, "80%", rotation=90)
+        ax.axvline(x=p_crit_60, color="#e35555", linestyle="--")
+        ax.text(p_crit_60, 0.05, "60%", rotation=90)
 
     ax.set_title("Intra-node strong scaling efficiency", fontsize=14)
 
     return fig
 
 
-def intranode_times_to_markdown(times: list[tuple[int, float]]) -> str:
+def intranode_times_to_markdown(table: pd.DataFrame) -> str:
     """
-    Generate Markdown table with
+    Generate Markdown table
+    :param table: Pandas dataframe containing parallel efficiency per core count
+    :return: String containing Markdown table
     """
-
-    times = np.transpose(np.array(times))
-    core_counts = times[0]
-    parallel_times = times[1]
-    serial_time = times[1][0] * core_counts[0]
-
-    # Calculate efficiency and 80%/60% critical core counts
-    speed_up = serial_time / parallel_times
-    efficiency = speed_up / core_counts
-
-    header = "| Thread count | Time (s) | Parallel efficiency |\n| --- | ------- | ----- |"
-    lines = [header]
-
-    # If we assert that these are equal, we can use one length in the for loop.
-    assert (len(core_counts) == len(parallel_times))
-    for i in range(len(core_counts)):
-        line = f"| {int(core_counts[i]):3d} | {parallel_times[i]:7.03f} | {efficiency[i]:5.03f} |"
-        lines.append(line)
-
-    return "\n".join(lines)
+    selection = {"Cores": "Core/thread count", "Time": "Time (s)", "Efficiency": "Parallel efficiency"}
+    return table[list(selection.keys())].rename(columns=selection).to_markdown(index=False)
 
 
 def intranode_add_args(main_parser):
@@ -194,7 +185,8 @@ def intranode_main(unparsed_args):
 
     if args.input:
         with open(args.input, 'r') as input_table:
-            lines = input_table.readlines()
+            # Ref: https://stackoverflow.com/questions/15233340/getting-rid-of-n-when-using-readlines
+            lines = input_table.read().splitlines()
     else:
         is_pipe = not os.isatty(sys.stdin.fileno())
 
@@ -210,28 +202,28 @@ def intranode_main(unparsed_args):
     # INPUT PROCESSING #
     ####################
 
+    if (args.input or is_pipe) and args.verbose:
+        print("Inputted table:")
+        print("\n".join(lines))
+
+    # Check that the separator exists, implying a Markdown table
+    if '|' in lines[0]:
+        # Remove heading line
+        del lines[1]
+        lines = [line.strip('|').replace("|", ',') for line in lines]
+
+    table = pd.read_csv(StringIO("\n".join(lines)))
+
+    # Drop any extra data
+    table = table.drop(table.columns[2:], axis=1)
+
+    # Rename columns incase alternative names used
+    table.columns = ["Cores", "Time"]
+
     if args.verbose:
         print("STATUS: processing input")
 
-    if (args.input or is_pipe) and args.verbose:
-        print("Inputted table:")
-        print("".join(lines))
-
-    if lines[0][0] == '|':
-        lines = lines[2:]
-        lines = map(lambda l: list(map(lambda s: s.strip(), l.split('|')))[1:-2], lines)
-    else:
-        split_commas = lambda l: l.split(',')
-        lines = map(split_commas, lines)
-
-    lines = list(lines)
-    if args.verbose:
-        print(f"lines: {lines}")
-
-    strings_to_numbers = lambda l: (int(l[0]), float(l[1]))
-    times = list(map(strings_to_numbers, lines))
-    if args.verbose:
-        print(f"times: {times}")
+    intranode_compute_metrics(table, verbose=args and args.verbose)
 
     #####################
     # OUTPUT GENERATION #
@@ -240,7 +232,8 @@ def intranode_main(unparsed_args):
     if args.graph:
         if args.verbose:
             print("STATUS: generating graph")
-        fig = intranode_times_to_graph(times, args)
+        fig = intranode_times_to_graph(table, critical_points=args and args.critical_points,
+                                       verbose=args and args.verbose)
         if args.graph_file:
             # Ensure output directory exists
             if '/' in args.graph_file:
@@ -255,21 +248,21 @@ def intranode_main(unparsed_args):
     if args.markdown:
         if args.verbose:
             print("STATUS: generating markdown")
-        table = intranode_times_to_markdown(times)
+        table_md = intranode_times_to_markdown(table)
         if args.markdown_file:
             # Ensure output directory exists
             if '/' in args.markdown_file:
                 os.makedirs(os.path.dirname(args.markdown_file), exist_ok=True)
             # Write to file
             with open(args.markdown_file, "w") as file:
-                file.write(f"{table}")
+                file.write(f"{table_md}")
         else:
-            print(f"{table}\0")
+            print(f"{table_md}\0")
 
     if args.critical_points:
         if args.verbose:
             print("STATUS: calculating critical points")
-        points = intranode_times_crit_80_60(times)
+        points = intranode_times_crit_80_60(table, prop=True)
         if args.critical_points_file:
             # Ensure output directory exists
             if '/' in args.critical_points_file:
