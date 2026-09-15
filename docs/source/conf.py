@@ -6,6 +6,11 @@
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
+import os
+import sys
+
+sys.path.insert(0, os.path.abspath('../../src/assessmenttemplate/'))
+
 project = 'Assessment Template'
 copyright = '2026, SHAREing'
 author = 'Thomas Flynn, Emily Wilkinson, Andrew Naden, Ananya Gangopadhyay'
@@ -16,6 +21,8 @@ release = '1.2'
 
 extensions = [
     'sphinx_mdinclude',
+    'sphinx.ext.autodoc',
+    'sphinx.ext.autosummary',
 ]
 
 templates_path = ['_templates']
