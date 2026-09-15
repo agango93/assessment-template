@@ -176,6 +176,14 @@ When called with the `summary` mode, the `high-level-plots.py` script takes data
 pipe or input file the same way as the `intranode` mode, as either a CSV or Markdown table. It accepts an arbitrary
 number of rows of "metric, score".
 
+### Documentation
+
+Generate documentation for the package with the following command:
+
+```commandline
+sphinx-build -M html docs/source/ docs/
+```
+
 ## Contributions
 
 This performance assessment is intentionally limited as we want to simply capture the performance of software at a *high
