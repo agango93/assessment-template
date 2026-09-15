@@ -2,36 +2,35 @@
 
 import matplotlib.pyplot as plt
 import numpy as np
-import argparse as ap
 import sys
 import os
 
 from enum import StrEnum, auto
 
-DEFAULT_FILE = "images/summary.png"
 
 class Rubric(StrEnum):
-    CPU   = auto()
-    GPU   = auto()
-    IO    = auto()
+    CPU = auto()
+    GPU = auto()
+    IO = auto()
     INTRA = auto()
     INTER = auto()
     UNKNOWN = auto()
 
-    def from_string(from_str: str):
-        match from_str.lower():
-            case s if s.startswith(Rubric.CPU):
-                return Rubric.CPU
-            case s if s.startswith(Rubric.GPU):
-                return Rubric.GPU
-            case s if s.startswith(Rubric.IO):
-                return Rubric.IO
-            case s if s.startswith(Rubric.INTRA):
-                return Rubric.INTRA
-            case s if s.startswith(Rubric.INTER):
-                return Rubric.INTER
-            case _:
-                return Rubric.UNKNOWN
+
+def from_string(from_str: str):
+    match from_str.lower():
+        case s if s.startswith(Rubric.CPU):
+            return Rubric.CPU
+        case s if s.startswith(Rubric.GPU):
+            return Rubric.GPU
+        case s if s.startswith(Rubric.IO):
+            return Rubric.IO
+        case s if s.startswith(Rubric.INTRA):
+            return Rubric.INTRA
+        case s if s.startswith(Rubric.INTER):
+            return Rubric.INTER
+        case _:
+            return Rubric.UNKNOWN
 
 
 def summary_to_spiderweb(rubrics: list[tuple[str, float]]) -> plt.Figure:
@@ -41,7 +40,7 @@ def summary_to_spiderweb(rubrics: list[tuple[str, float]]) -> plt.Figure:
     :param rubrics: list of (rubric, 0-to-1-normalised score)
     :return: matplotlib figure
     """
-    
+
     rubrics = np.array(rubrics).transpose()
     scores = rubrics[1].astype(float)
     names = rubrics[0]
@@ -57,10 +56,11 @@ def summary_to_spiderweb(rubrics: list[tuple[str, float]]) -> plt.Figure:
 
     ax.set_xticks(angles[:-1])
     ax.set_xticklabels(names)
-    
+
     ax.set_title("Rubric Scores", fontsize=14)
 
     return fig
+
 
 def summary_to_bar_chart(rubrics: list[tuple[int, float]]) -> plt.Figure:
     """ 
@@ -76,72 +76,71 @@ def summary_to_bar_chart(rubrics: list[tuple[int, float]]) -> plt.Figure:
     fig, ax = plt.subplots()
 
     ax.bar(names, scores)
-    ax.set_ylim([0., 1.])
-    
+    ax.set_ylim(0.0, 1.0)
+
     # Rotate labels so they don't overlap
     fig.autofmt_xdate()
 
     return fig
 
-def parse_args():
-    parser = ap.ArgumentParser(
-        prog="summary.py",
-        description="Tools to generate a spiderweb diagram or bar graph for the SHAREing high-level performance assessment. "+_main.__doc__,
-    )
 
-    #parser.add_argument("-h", "--help", action="help", help="Show this help message and exit")
-    parser.add_argument("--version", action="version", version="%(prog)s 1.0", help="Show program version number and exit")
+def summary_add_args(main_parser):
+    parser = main_parser.add_parser("summary",
+                                    description=f"Generate a spiderweb diagram or bar graph for the SHAREing "
+                                                "high-level performance assessment." + summary_main.__doc__)
 
-    parser.add_argument("-b", "--bar", action="store_true", help="Output a bar chart instead of a spiderweb")
-    parser.add_argument("-d", "--default", action="store_true", help=f"Output to the default file, '{DEFAULT_FILE}'")
-    parser.add_argument("-v", "--verbose", action="store_true", help="Print extra debug outputs")
-    parser.add_argument("-s", "--stdout-graph", action="store_true", help="Output image data to stdout (useful for piping)")
-    parser.add_argument("--svg", action="store_true", help="Output graph as SVG to default file rather than PNG")
+    parser.add_argument("-b", "--bar", action="store_true", help="Output a bar chart instead of a spiderweb.")
 
-    parser.add_argument("-o", "--output", help="Specify an output file")
 
-    args = parser.parse_args()
-
+def summary_parse_args(unparsed_args):
+    args = unparsed_args
     if args.verbose:
         print(f"args: {args}")
-    
+
     if args.default and not args.output:
+        args.output = f"input/summary.{"svg" if args.svg else "png"}"
+
         if args.verbose:
-            print(f"STATUS: Setting output to default filepath '{DEFAULT_FILE}'")
-        if args.svg:
-            args.output = DEFAULT_FILE[:-3] + "svg"
-        else:
-            args.output = DEFAULT_FILE
+            print(f"STATUS: Setting output to default filepath:{args.output}")
+
     elif args.default and args.output:
         print("WARNING: Specifying output file overrides request to output to default file.")
 
     if args.svg and not args.default:
-        print("WARNING: svg flag only has an effect when outputting to the default file. Matplotlib will output to svg if you specify a filename with file ending '.svg'")
+        print(
+            "WARNING: svg flag only has an effect when outputting to the default file. "
+            "Matplotlib will output to svg if you specify a filename with file ending '.svg'")
 
     return args
 
-def _main():
-    '''
-    This script may be passed either a markdown table containing thread count, time, and (optional) parallel efficiency,
+
+def summary_main(unparsed_args):
+    """
+    This script may be passed either a Markdown table containing thread count, time, and (optional) parallel efficiency,
     or by passing CSV thread count, time.
 
-    It can output a matplotlib graph and a markdown formatted table with all three columns filled in.
-    '''
+    It can output a matplotlib graph and a Markdown formatted table with all three columns filled in.
+    """
 
-    args = parse_args()
+    args = summary_parse_args(unparsed_args)
 
-    is_pipe = not os.isatty(sys.stdin.fileno())
-
-    if not is_pipe:
-        print(f"Please paste the data below, then an empty line:")
+    is_pipe = False
 
     lines = []
+    if args.input:
+        with open(args.input, 'r') as input_table:
+            lines = input_table.readlines()
+    else:
+        is_pipe = not os.isatty(sys.stdin.fileno())
 
-    for line in sys.stdin:
-        if line.strip() == '':
-            break
-        lines.append(line)
-        
+        if not is_pipe:
+            print(f"Please paste the data below, then an empty line:")
+
+        for line in sys.stdin:
+            if line.strip() == '':
+                break
+            lines.append(line)
+
     ####################
     # INPUT PROCESSING #
     ####################
@@ -149,7 +148,7 @@ def _main():
     if args.verbose:
         print("STATUS: processing input")
 
-    if is_pipe and args.verbose:
+    if (args.input or is_pipe) and args.verbose:
         print("Inputted table:")
         print("".join(lines))
 
@@ -181,7 +180,7 @@ def _main():
 
     if args.verbose:
         print("STATUS: generating graph")
-    fig = None
+
     if args.bar:
         fig = summary_to_bar_chart(times)
     else:
@@ -194,8 +193,5 @@ def _main():
         fig.savefig(args.output)
     if args.stdout_graph:
         fig.savefig(sys.stdout)
-    if not args.stdout_graph and not args.output: # Only view in window if we haven't already output somewhere else
+    if args.show:
         plt.show()
-    
-if __name__ == "__main__":
-    _main()
