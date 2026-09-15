@@ -26,10 +26,10 @@ the `performance assessment guidebook <https://shareing-dri.github.io/performanc
 `example report <../../examples/stencil-example-report.md>`_ is also provided.
 
 ***********************************
-The ``assessmenttemplates`` package
+The ``assessmenttemplate`` package
 ***********************************
 
-The ``assessmenttemplates`` Python package and its few dependencies can be installed locally, or in a virtual
+The ``assessmenttemplate`` Python package and its few dependencies can be installed locally, or in a virtual
 environment,
 by running the command:
 

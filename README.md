@@ -36,9 +36,9 @@ Details of how to conduct each performance measurement are given in
 the [performance assessment guidebook](https://shareing-dri.github.io/performance-assessment/guidebook). An [
 `example report`](examples/stencil-example-report.md) is also provided.
 
-## The `assessmenttemplates` package
+## The `assessmenttemplate` package
 
-The `assessmenttemplates` Python package and its few dependencies can be installed locally, or in a virtual environment,
+The `assessmenttemplate` Python package and its few dependencies can be installed locally, or in a virtual environment,
 by running the command:
 
 ```shell
