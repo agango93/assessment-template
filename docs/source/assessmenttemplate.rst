@@ -16,3 +16,11 @@ assessmenttemplate.summary module
    :members:
    :undoc-members:
    :show-inheritance:
+
+assessmenttemplate.tools module
+---------------------------------
+
+.. automodule:: assessmenttemplate.tools
+   :members:
+   :undoc-members:
+   :show-inheritance:
