@@ -4,8 +4,11 @@ import matplotlib.pyplot as plt
 import numpy as np
 import sys
 import os
-
 from enum import StrEnum, auto
+
+import pandas as pd
+
+from assessmenttemplate.tools import read_input_table
 
 
 class Rubric(StrEnum):
@@ -33,20 +36,17 @@ def from_string(from_str: str):
             return Rubric.UNKNOWN
 
 
-def summary_to_spiderweb(rubrics: list[tuple[str, float]]) -> plt.Figure:
+def summary_to_spiderweb(table: pd.DataFrame) -> plt.Figure:
     """ 
     Create matplotlib spiderweb diagram
 
-    :param rubrics: list of (rubric, 0-to-1-normalised score)
+    :param table: Pandas DataFrame containing rubrics and the assigned 0-to-1-normalised score
     :return: matplotlib figure
     """
 
-    rubrics = np.array(rubrics).transpose()
-    scores = rubrics[1].astype(float)
-    names = rubrics[0]
-
-    nvars = len(scores)
+    nvars = len(table.index)
     angles = np.linspace(0, 2 * np.pi, nvars, endpoint=False).tolist()
+    scores = table["Score"].to_numpy()
     scores = np.append(scores, scores[0])
     angles = np.append(angles, angles[0])
 
@@ -55,27 +55,24 @@ def summary_to_spiderweb(rubrics: list[tuple[str, float]]) -> plt.Figure:
     ax.plot(angles, scores, color='teal', linewidth=2)  # Outline
 
     ax.set_xticks(angles[:-1])
-    ax.set_xticklabels(names)
+    ax.set_xticklabels(table["Rubric"])
 
     ax.set_title("Rubric Scores", fontsize=14)
 
     return fig
 
 
-def summary_to_bar_chart(rubrics: list[tuple[int, float]]) -> plt.Figure:
+def summary_to_bar_chart(table: pd.DataFrame) -> plt.Figure:
     """ 
     Create matplotlib bar chart
 
-    :param rubrics: list of (core count, time taken in seconds)
+    :param table: Pandas DataFrame containing rubrics and the assigned 0-to-1-normalised score
     :return: matplotlib figure
     """
-    rubrics = np.array(rubrics).transpose()
-    scores = rubrics[1].astype(float)
-    names = rubrics[0]
 
     fig, ax = plt.subplots()
 
-    ax.bar(names, scores)
+    ax.bar(table["Rubric"], table["Score"])
     ax.set_ylim(0.0, 1.0)
 
     # Rotate labels so they don't overlap
@@ -124,23 +121,6 @@ def summary_main(unparsed_args):
 
     args = summary_parse_args(unparsed_args)
 
-    is_pipe = False
-
-    lines = []
-    if args.input:
-        with open(args.input, 'r') as input_table:
-            lines = input_table.readlines()
-    else:
-        is_pipe = not os.isatty(sys.stdin.fileno())
-
-        if not is_pipe:
-            print(f"Please paste the data below, then an empty line:")
-
-        for line in sys.stdin:
-            if line.strip() == '':
-                break
-            lines.append(line)
-
     ####################
     # INPUT PROCESSING #
     ####################
@@ -148,31 +128,10 @@ def summary_main(unparsed_args):
     if args.verbose:
         print("STATUS: processing input")
 
-    if (args.input or is_pipe) and args.verbose:
-        print("Inputted table:")
-        print("".join(lines))
+    table = read_input_table(args)
 
-    if args.verbose:
-        print(f"lines: {lines}")
-    if lines[0][0] == '|':
-        if args.verbose:
-            print("Assuming Markdown table input, discarding two header rows")
-        lines = lines[2:]
-        lines = map(lambda l: list(map(lambda s: s.strip(), l.split('|')))[1:-2], lines)
-    else:
-        if args.verbose:
-            print("Assuming CSV input")
-        split_commas = lambda l: l.split(',')
-        lines = map(split_commas, lines)
-
-    lines = list(lines)
-    if args.verbose:
-        print(f"lines (after converting to list): {lines}")
-
-    strings_to_numbers = lambda l: (l[0], float(l[1]))
-    times = list(map(strings_to_numbers, lines))
-    if args.verbose:
-        print(f"times: {times}")
+    # Rename columns incase alternative names used
+    table.columns = ["Rubric", "Score"]
 
     #####################
     # OUTPUT GENERATION #
@@ -182,9 +141,9 @@ def summary_main(unparsed_args):
         print("STATUS: generating graph")
 
     if args.bar:
-        fig = summary_to_bar_chart(times)
+        fig = summary_to_bar_chart(table)
     else:
-        fig = summary_to_spiderweb(times)
+        fig = summary_to_spiderweb(table)
     if args.output:
         # Ensure output directory exists
         if '/' in args.output:

@@ -35,9 +35,12 @@ def read_input_table(args) -> pd.DataFrame:
 
     # Check that the separator exists, implying a Markdown table
     if '|' in lines[0]:
+        print("Assuming Markdown table input, discarding two header rows")
         # Remove heading line
         del lines[1]
         lines = [line.strip('|').replace("|", ',') for line in lines]
+    else:
+        print("Assuming CSV input")
 
     table = pd.read_csv(StringIO("\n".join(lines)))
 
