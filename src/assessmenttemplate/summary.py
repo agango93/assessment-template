@@ -2,6 +2,7 @@
 
 import matplotlib.pyplot as plt
 import numpy as np
+import seaborn as sns
 import sys
 import os
 from enum import StrEnum, auto
@@ -72,11 +73,13 @@ def summary_to_bar_chart(table: pd.DataFrame) -> plt.Figure:
 
     fig, ax = plt.subplots()
 
-    ax.bar(table["Rubric"], table["Score"])
+    sns.barplot(data=table, x="Rubric", y="Score")
     ax.set_ylim(0.0, 1.0)
 
     # Rotate labels so they don't overlap
     fig.autofmt_xdate()
+
+    plt.tight_layout()
 
     return fig
 
