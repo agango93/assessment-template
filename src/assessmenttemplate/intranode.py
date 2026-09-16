@@ -3,6 +3,7 @@ import pandas as pd
 import seaborn as sns
 import sys
 import os
+import os
 
 from assessmenttemplate.tools import read_input_table
 
@@ -45,7 +46,7 @@ def intranode_times_crit_80_60(table: pd.DataFrame, prop=False) -> tuple[float, 
     return p_crit_80, p_crit_60
 
 
-def intranode_times_to_graph(table: pd.DataFrame, critical_points=False, verbose=False) -> plt.Figure:
+def intranode_times_to_graph(table: pd.DataFrame, cat_plot=False, critical_points=False, verbose=False) -> plt.Figure:
     """ 
     Create seaborn graph
 
@@ -62,17 +63,24 @@ def intranode_times_to_graph(table: pd.DataFrame, critical_points=False, verbose
     ax.set_xlabel(r'$p$')
     ax.set_ylabel(r'$E(p)$')
 
-    sns.lineplot(data=table, x="Cores", y="Efficiency", color="black", ax=ax)
+    if cat_plot:
+        sns.pointplot(data=table, x="Cores", y="Efficiency", ax=ax, color='black',
+                      errorbar=("pi", 100), capsize=0.25)
+    else:
+        sns.lineplot(data=table, x="Cores", y="Efficiency", marker='o', ax=ax, color='black', linewidth=3.5,
+                     markersize=10)
 
     if critical_points:
         if verbose:
             print("Adding critical points to plot")
         p_crit_80, p_crit_60 = intranode_times_crit_80_60(table)
         ax.axvline(x=p_crit_80, color="#ffc844", linestyle="--")
-        ax.text(p_crit_80, 0.05, "80%", rotation=90)
+        ax.text(p_crit_80, 1.0, "80%", ha='right', va='top', rotation=90,
+                transform=ax.get_xaxis_transform())
         ax.axvline(x=p_crit_60, color="#e35555", linestyle="--")
-        ax.text(p_crit_60, 0.05, "60%", rotation=90)
-
+        ax.text(p_crit_60, 1.0, "60%", ha='right', va='top', rotation=90,
+                transform=ax.get_xaxis_transform())
+    # ax.set_xscale('log', base=2)
     ax.set_title("Intra-node strong scaling efficiency", fontsize=14)
 
     return fig
@@ -96,7 +104,10 @@ def intranode_add_args(main_parser):
                                            "the standard console output." + intranode_main.__doc__
                                     )
 
-    parser.add_argument("-g", "--graph", action="store_true", help="Generate graph.")
+    parser.add_argument("-g", "--graph", default=None, choices=[None, "cont", "cat"], help="Generate graph; either a "
+                                                                                           "continuous line plot (cont; "
+                                                                                           "default) or a categorical point "
+                                                                                           "plot (cat).")
     parser.add_argument("-m", "--markdown", action="store_true", help="Generate markdown table.")
     parser.add_argument("-c", "--critical-points", action="store_true",
                         help="Calculate 80 and 60 percent critical values.")
@@ -117,7 +128,8 @@ def intranode_parse_args(unparsed_args):
         print(f"args: {args}")
 
     if args.output_all:
-        args.graph = True
+        if not args.graph:
+            args.graph = "cont"
         args.markdown = True
         args.critical_points = True
 
@@ -131,7 +143,7 @@ def intranode_parse_args(unparsed_args):
             "WARNING: svg flag only has an effect when outputting to the default file. "
             "Matplotlib will output to svg if you specify a filename with file ending '.svg'")
 
-    if args.graph + args.markdown + args.critical_points >= 2 and args.output:
+    if (args.graph is not None) + args.markdown + args.critical_points >= 2 and args.output:
         print("ERROR: Single specified output file is not valid when multiple outputs are requested at once.")
         exit()
 
@@ -178,14 +190,14 @@ def intranode_main(unparsed_args):
 
     args = intranode_parse_args(unparsed_args)
 
-    table = read_input_table(args)
-
     ####################
     # INPUT PROCESSING #
     ####################
 
     if args.verbose:
         print("STATUS: processing input")
+
+    table = read_input_table(args)
 
     # Rename columns incase alternative names used
     table.columns = ["Cores", "Time"]
@@ -200,7 +212,7 @@ def intranode_main(unparsed_args):
         if args.verbose:
             print("STATUS: generating graph")
         fig = intranode_times_to_graph(table, critical_points=args and args.critical_points,
-                                       verbose=args and args.verbose)
+                                       verbose=args and args.verbose, cat_plot=args.graph == "cat")
         if args.graph_file:
             # Ensure output directory exists
             if '/' in args.graph_file:
