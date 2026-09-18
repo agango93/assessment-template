@@ -1,6 +1,6 @@
 import argparse as ap
 import os
-import assessmenttemplate.intranode as intranode
+import assessmenttemplate.scaling as scaling
 import assessmenttemplate.summary as summary
 
 
@@ -42,15 +42,16 @@ def _main():
     sub_parsers = parser.add_subparsers(dest="mode", required=True, help="Mode pertaining to the high-level rubric for "
                                                                          "which the plots are to be generated.")
     # Add plots per rubric/mode
-    intranode.intranode_add_args(sub_parsers)
+    scaling.scaling_add_args(sub_parsers)
+    scaling.scaling_add_args(sub_parsers, scaling_rubric="internode")
     summary.summary_add_args(sub_parsers)
 
     args = parser.parse_args()
 
-    if args.mode == "intranode":
-        intranode.intranode_main(args)
-    elif args.mode == "summary":
+    if args.mode == "summary":
         summary.summary_main(args)
+    else:
+        scaling.scaling_main(args)
 
 
 if __name__ == "__main__":

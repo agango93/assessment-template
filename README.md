@@ -70,15 +70,16 @@ options:
 Unless an output flag is specified, a requested output will be echoed to the standard console output.
 ```
 
-The script currently only offers two modes: [`intranode`](#intranode) and [`summary`](#summary). Further modules for the
-high-level, and scripts for the low-level assessment will be added in due course as the methodology is developed. The
+The script currently only offers two modes: [`scaling.py`](#intranode) and [`summary`](#summary). Further modules for
+the high-level, and scripts for the low-level assessment will be added in due course as the methodology is developed.
+The
 "Core" and "I/O" rubrics do not require significant calculations to complete so no associated scripts or modules will be
 created for them. As of 09-09-2026, the workflows and measurements required for the GPU and internode metrics are still
 being established.
 
-### `intranode`
+### `scaling.py`
 
-Intra-node performance analysis figures are generated using the `intranode` module, accessed with
+Intra-node performance analysis figures are generated using the `scaling.py` module, accessed with
 `high_level_assessment.py intranode`:
 
 ```txt
@@ -104,7 +105,7 @@ Unless an output flag is specified, a requested output will be echoed to the sta
 passing CSV thread count, time. It can output a matplotlib graph and a Markdown formatted table with all three columns filled in.
 ```
 
-In the `intranode` mode, the script can take data input from the standard input, a unix pipe or a file. The input is a
+In the `scaling.py` mode, the script can take data input from the standard input, a unix pipe or a file. The input is a
 table which can be in CSV or Markdown format. Suppose we have the following data saved as `times.csv`:
 
 ```csv
@@ -147,7 +148,7 @@ The script can also be provided a Markdown table in the above format as the inpu
 By default (set with the `--default` or `-d` flag), the generated graph will be written to the [`images`](images)
 directory.
 
-The `intranode` module contains three useful functions which could be used for other modules:
+The `scaling.py` module contains three useful functions which could be used for other modules:
 
 1. `intranode_times_crit_80_60(times: list[tuple[int, float]]) -> tuple[float, float]` - this calculates the 80% and 60%
    efficiency points and returns them as a tuple
@@ -173,7 +174,7 @@ options:
 ```
 
 When called with the `summary` mode, the `high-level-plots.py` script takes data input from the standard input, unix
-pipe or input file the same way as the `intranode` mode, as either a CSV or Markdown table. It accepts an arbitrary
+pipe or input file the same way as the `scaling.py` mode, as either a CSV or Markdown table. It accepts an arbitrary
 number of rows of "metric, score".
 
 ### Documentation
