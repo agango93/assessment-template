@@ -98,7 +98,7 @@ def summary_parse_args(unparsed_args):
         print(f"args: {args}")
 
     if args.default and not args.output:
-        args.output = f"input/summary.{"svg" if args.svg else "png"}"
+        args.output = f"images/summary.{"svg" if args.svg else "png"}"
 
         if args.verbose:
             print(f"STATUS: Setting output to default filepath:{args.output}")
