@@ -4,7 +4,7 @@ assessmenttemplate package
 assessmenttemplate.intranode module
 -------------------------------------
 
-.. automodule:: assessmenttemplate.intranode
+.. automodule:: assessmenttemplate.scaling
    :members:
    :undoc-members:
    :show-inheritance:

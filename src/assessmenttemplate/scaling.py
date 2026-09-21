@@ -3,105 +3,126 @@ import pandas as pd
 import seaborn as sns
 import sys
 import os
-import os
 
 from assessmenttemplate.tools import read_input_table
 
 
-def intranode_compute_metrics(table: pd.DataFrame, verbose=False):
+def scaling_compute_metrics(table: pd.DataFrame, internode=False, verbose=False):
     """
     Process input table and compute parallel efficiency per core count
 
     :param table: Pandas dataframe containing time taken in seconds per core count
+    :param internode: Generate table for internode run
     :param verbose: Verbose output if requested (and arguments are provided)
     """
+
+    proc = "Nodes" if internode else "Cores"
+
     # Calculate speed-up and parallel efficiency
-    serial_time = table.loc[table["Cores"] == 1, "Time"].iloc[0]
+    serial_time = table.loc[table[proc] == 1, "Time"].iloc[0]
     table["Speed-up"] = serial_time / table["Time"]
-    table["Efficiency"] = table["Speed-up"] / table["Cores"]
+    table["Efficiency"] = table["Speed-up"] / table[proc]
 
     if verbose:
         print(f"Calculated efficiencies")
 
 
-def intranode_times_crit_80_60(table: pd.DataFrame, prop=False) -> tuple[float, float]:
+def scaling_times_crit_80_60(table: pd.DataFrame, internode=False, prop=False) -> tuple[float, float]:
     """
     Calculate the 80% and 60% critical points/proportions
 
     :param table: Pandas dataframe containing parallel efficiency per core count
+    :param internode: Generate table for internode run
     :param prop: Return porportional values instead of direct critical points
     :return: 80% proportion, 60% proportion
     """
 
+    proc = "Nodes" if internode else "Cores"
+
     # Calculate 80%/60% critical core points
 
-    p_crit_80 = table.loc[table["Efficiency"] >= 0.8, "Cores"].max()
-    p_crit_60 = table.loc[table["Efficiency"] >= 0.6, "Cores"].max()
+    p_crit_80 = table.loc[table["Efficiency"] >= 0.8, proc].max()
+    p_crit_60 = table.loc[table["Efficiency"] >= 0.6, proc].max()
 
     if prop:
-        intra_node_prop_80 = float(p_crit_80 / table["Cores"].max())
-        intra_node_prop_60 = float(p_crit_60 / table["Cores"].max())
+        intra_node_prop_80 = float(p_crit_80 / table[proc].max())
+        intra_node_prop_60 = float(p_crit_60 / table[proc].max())
         return intra_node_prop_80, intra_node_prop_60
 
     return p_crit_80, p_crit_60
 
 
-def intranode_times_to_graph(table: pd.DataFrame, cat_plot=False, critical_points=False, verbose=False) -> plt.Figure:
+def scaling_times_to_graph(table: pd.DataFrame, internode=False, cat_plot=False, critical_points=False,
+                           verbose=False) -> plt.Figure:
     """ 
     Create seaborn graph
 
     :param table: Pandas dataframe containing parallel efficiency per core count
+    :param internode: Generate table for internode run
+    :param cat_plot: Create a point plot instead of a line plot
     :param critical_points: Add critical points to the graph
     :param verbose: Verbose output if requested (and arguments are provided)
     :return: matplotlib figure
     """
 
     if verbose:
-        print("Plotting graph")
+        print(f"Plotting graph for {"internode" if internode else "intranode"}")
 
     fig, ax = plt.subplots()
     ax.set_xlabel(r'$p$')
     ax.set_ylabel(r'$E(p)$')
 
+    proc = "Nodes" if internode else "Cores"
+
     if cat_plot:
-        sns.pointplot(data=table, x="Cores", y="Efficiency", ax=ax, color='black',
+        sns.pointplot(data=table, x=proc, y="Efficiency", ax=ax, color='black',
                       errorbar=("pi", 100), capsize=0.25)
     else:
-        sns.lineplot(data=table, x="Cores", y="Efficiency", marker='o', ax=ax, color='black', linewidth=3.5,
+        sns.lineplot(data=table, x=proc, y="Efficiency", marker='o', ax=ax, color='black', linewidth=3.5,
                      markersize=10)
 
     if critical_points:
         if verbose:
             print("Adding critical points to plot")
-        p_crit_80, p_crit_60 = intranode_times_crit_80_60(table)
+        p_crit_80, p_crit_60 = scaling_times_crit_80_60(table, internode=internode)
         ax.axvline(x=p_crit_80, color="#ffc844", linestyle="--")
         ax.text(p_crit_80, 1.0, "80%", ha='right', va='top', rotation=90,
                 transform=ax.get_xaxis_transform())
         ax.axvline(x=p_crit_60, color="#e35555", linestyle="--")
         ax.text(p_crit_60, 1.0, "60%", ha='right', va='top', rotation=90,
                 transform=ax.get_xaxis_transform())
-    # ax.set_xscale('log', base=2)
-    ax.set_title("Intra-node strong scaling efficiency", fontsize=14)
+
+    ax.set_title(f"{"Inter-node weak" if internode else "Intra-node strong"} scaling efficiency", fontsize=14)
 
     return fig
 
 
-def intranode_times_to_markdown(table: pd.DataFrame) -> str:
+def scaling_times_to_markdown(table: pd.DataFrame, internode=False) -> str:
     """
-    Generate Markdown table
+    Generate Markdown table for intranode or internode rubric
     :param table: Pandas dataframe containing parallel efficiency per core count
+    :param internode: Generate table for internode run
     :return: String containing Markdown table
     """
-    selection = {"Cores": "Core/thread count", "Time": "Time (s)", "Efficiency": "Parallel efficiency"}
+    if internode:
+        selection = {"Nodes": "# Nodes"}
+    else:
+        selection = {"Cores": "Core/thread count"}
+
+    selection["Time"] = "Time (s)"
+    selection["Efficiency"] = "Parallel efficiency"
+
     return table[list(selection.keys())].rename(columns=selection).to_markdown(index=False)
 
 
-def intranode_add_args(main_parser):
-    parser = main_parser.add_parser("intranode",
-                                    description="Generate a strong scaling efficiency graph and table from intra-node "
-                                                "runtimes.",
+def scaling_add_args(main_parser, scaling_rubric="intranode"):
+    description = (f"Generate a {"strong" if scaling_rubric == "intranode" else "weak"} scaling efficiency graph and "
+                   f"table from {"intra-node" if scaling_rubric == "intranode" else "inter-node"} runtimes.")
+
+    parser = main_parser.add_parser(scaling_rubric,
+                                    description=description,
                                     epilog="Unless an output flag is specified, a requested output will be echoed to "
-                                           "the standard console output." + intranode_main.__doc__
+                                           "the standard console output." + scaling_main.__doc__
                                     )
 
     parser.add_argument("-g", "--graph", default=None, choices=[None, "cont", "cat"], help="Generate graph; either a "
@@ -113,16 +134,16 @@ def intranode_add_args(main_parser):
                         help="Calculate 80 and 60 percent critical values.")
     parser.add_argument("-a", "--output-all", action="store_true", help="Output all output types.")
     parser.add_argument("--graph-file", help="Specify an output file for the graph.",
-                        default='images/intranode.png')
+                        default=f'images/{scaling_rubric}.png')
     parser.add_argument("--markdown-file",
                         help="Specify an output file for the markdown table.",
-                        default='intranode_table.md')
+                        default=f'{scaling_rubric}_table.md')
     parser.add_argument("--critical-points-file",
                         help="Specify an output file for the calculated critical values.",
-                        default='intranode_critical_proportions.txt')
+                        default=f'{scaling_rubric}_critical_proportions.txt')
 
 
-def intranode_parse_args(unparsed_args):
+def scaling_parse_args(unparsed_args):
     args = unparsed_args
     if args.verbose:
         print(f"args: {args}")
@@ -136,7 +157,7 @@ def intranode_parse_args(unparsed_args):
     if args.default:
         if args.verbose:
             print(f"Using default files.")
-        args.graph_file = 'images/intranode.svg' if args.svg else 'images/intranode.png'
+        args.graph_file = f"images/{args.mode}.svg" if args.svg else f"images/{args.mode}.png"
 
     if args.svg and (args.default or args.graph_file or (args.graph and args.output)):
         print(
@@ -180,7 +201,7 @@ def intranode_parse_args(unparsed_args):
     return args
 
 
-def intranode_main(unparsed_args):
+def scaling_main(unparsed_args):
     """
     This script may be passed either a Markdown table containing thread count, time, and (optional) parallel efficiency,
     or by passing CSV thread count, time.
@@ -188,7 +209,7 @@ def intranode_main(unparsed_args):
     It can output a matplotlib graph and a Markdown formatted table with all three columns filled in.
     """
 
-    args = intranode_parse_args(unparsed_args)
+    args = scaling_parse_args(unparsed_args)
 
     ####################
     # INPUT PROCESSING #
@@ -200,9 +221,9 @@ def intranode_main(unparsed_args):
     table = read_input_table(args)
 
     # Rename columns incase alternative names used
-    table.columns = ["Cores", "Time"]
+    table.columns = ["Cores" if args.mode == "intranode" else "Nodes", "Time"]
 
-    intranode_compute_metrics(table, verbose=args and args.verbose)
+    scaling_compute_metrics(table, internode=args.mode == "internode", verbose=args and args.verbose)
 
     #####################
     # OUTPUT GENERATION #
@@ -211,8 +232,9 @@ def intranode_main(unparsed_args):
     if args.graph:
         if args.verbose:
             print("STATUS: generating graph")
-        fig = intranode_times_to_graph(table, critical_points=args and args.critical_points,
-                                       verbose=args and args.verbose, cat_plot=args.graph == "cat")
+        fig = scaling_times_to_graph(table, internode=args.mode == "internode",
+                                     critical_points=args and args.critical_points, verbose=args and args.verbose,
+                                     cat_plot=args.graph == "cat")
         if args.graph_file:
             # Ensure output directory exists
             if '/' in args.graph_file:
@@ -227,7 +249,7 @@ def intranode_main(unparsed_args):
     if args.markdown:
         if args.verbose:
             print("STATUS: generating markdown")
-        table_md = intranode_times_to_markdown(table)
+        table_md = scaling_times_to_markdown(table, internode=args.mode == "internode")
         if args.markdown_file:
             # Ensure output directory exists
             if '/' in args.markdown_file:
@@ -241,7 +263,7 @@ def intranode_main(unparsed_args):
     if args.critical_points:
         if args.verbose:
             print("STATUS: calculating critical points")
-        points = intranode_times_crit_80_60(table, prop=True)
+        points = scaling_times_crit_80_60(table, internode=args.mode == "internode", prop=True)
         if args.critical_points_file:
             # Ensure output directory exists
             if '/' in args.critical_points_file:

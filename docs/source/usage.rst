@@ -25,6 +25,11 @@ Details of how to conduct each performance measurement are given in
 the `performance assessment guidebook <https://shareing-dri.github.io/performance-assessment/guidebook>`_. An
 `example report <../../examples/stencil-example-report.md>`_ is also provided.
 
+The ``high-level-plots.py`` script in the :ref:`assessmenttemplate` package can be used to
+create the plots and metric required to fill out the `high-level assessment report <../../reports/high-level-report.md>`_
+
+.. _assessmenttemplate:
+
 ***********************************
 The ``assessmenttemplate`` package
 ***********************************
@@ -42,40 +47,41 @@ assessment with the ``high-level-plots.py`` script :
 
 .. code-block::
 
-    usage: high-level-plots.py [-h] [--version] [-v] [-d] [--svg] [-i INPUT] [-o OUTPUT] [-s] [--show] {intranode,summary} ...
+    usage: high-level-plots.py [-h] [--version] [-v] [-d] [--svg] [-i INPUT] [-o OUTPUT] [-s] [--show] {intranode,internode,summary} ...
 
     Tools to generate plots for the high-level assessment.
 
     positional arguments:
-      {intranode,summary}  Mode pertaining to the high-level rubric for which the plots are to be generated.
+      {intranode,internode,summary}
+                            Mode pertaining to the high-level rubric for which the plots are to be generated.
 
     options:
-      -h, --help           show this help message and exit
-      --version            Show program version number and exit.
-      -v, --verbose        Print extra debug outputs.
-      -d, --default        Output any requested outputs with unspecified file to their default file.
-      --svg                Output graph to default file will output SVG rather than PNG.
-      -i, --input INPUT    Specify an optional input file containing the table for the metric.requested. Will use stdin if none specified.
-      -o, --output OUTPUT  Specify an output file. This can only be used if exactly one output type is requested.
-      -s, --stdout-graph   Output image data to stdout (useful for piping)
-      --show               Show graph in window at runtime.
+      -h, --help            show this help message and exit
+      --version             Show program version number and exit.
+      -v, --verbose         Print extra debug outputs.
+      -d, --default         Output any requested outputs with unspecified file to their default file.
+      --svg                 Output graph to default file will output SVG rather than PNG.
+      -i, --input INPUT     Specify an optional input file containing the table for the metric.requested. Will use stdin if none specified.
+      -o, --output OUTPUT   Specify an output file. This can only be used if exactly one output type is requested.
+      -s, --stdout-graph    Output image data to stdout (useful for piping)
+      --show                Show graph in window at runtime.
 
     Unless an output flag is specified, a requested output will be echoed to the standard console output.
 
-The script currently only offers two modes: :ref:`intranode` and :ref:`summary`.
+The script currently only offers two modes: :ref:`intranode-and-internode` and :ref:`summary`.
 Further modules for the high-level, and scripts for the low-level assessment will be added in due course as the
 methodology is developed. The "Core" and "I/O" rubrics do not require significant calculations to complete so no
 associated scripts or modules will be created for them. As of 09-09-2026, the workflows and measurements required for
 the GPU and internode metrics are still being established.
 
-.. _intranode:
+.. _intranode-and-internode:
 
-=============
-``intranode``
-=============
-
-Intra-node performance analysis figures are generated using the ``intranode`` module, accessed with
-``high_level_assessment.py intranode``:
+===============================
+``intranode`` and ``internode``
+===============================
+Intra-node and inter-node performance analysis figures are generated using the ``scaling`` module accessed with
+``high-level-plots intranode`` and ``high-level-plots internode`` respectively. The usage information for the
+``intranode`` mode is povided below and `internode`` uses the same arguments:
 
 .. code-block::
 
@@ -97,8 +103,7 @@ Intra-node performance analysis figures are generated using the ``intranode`` mo
       --critical-points-file CRITICAL_POINTS_FILE
                             Specify an output file for the calculated critical values.
 
-    Unless an output flag is specified, a requested output will be echoed to the standard console output. This script may be passed either a Markdown table containing thread count, time, and (optional) parallel efficiency, or by
-    passing CSV thread count, time. It can output a matplotlib graph and a Markdown formatted table with all three columns filled in.
+Unless an output flag is specified, a requested output will be echoed to the standard console output. This script may be passed either a Markdown table containing thread count, time, and (optional) parallel efficiency, or by passing CSV thread count, time. It can output a matplotlib graph and a Markdown formatted table with all three columns filled in.
 
 In the ``intranode`` mode, the script can take data input from the standard input, a unix pipe or a file. The
 input is a table which can be in CSV or Markdown format. Suppose we have the following data saved as ``times.csv``:
@@ -143,14 +148,14 @@ The script can also be provided a Markdown table in the above format as the inpu
 
 By default (set with the ``--default`` or ``-d`` flag), the generated graph will be written to the ``images`` directory.
 
-The ``intranode`` module contains three useful functions which could be used for other modules:
+The ``scaling`` module contains three useful functions which could be used for other modules:
 
-#. ``intranode_times_crit_80_60(times: list[tuple[int, float]]) -> tuple[float, float]`` - this calculates the 80%
+#. ``scaling_times_crit_80_60(times: list[tuple[int, float]]) -> tuple[float, float]`` - this calculates the 80%
    and 60% efficiency points and returns them as a tuple
 
-#. ``intranode_times_to_graph(times: list[tuple[int, float]]) -> plt.Figure`` - self-explanatory, generates the graph
+#. ``scaling_times_to_graph(times: list[tuple[int, float]]) -> plt.Figure`` - self-explanatory, generates the graph
 
-#. ``intranode_times_to_markdown(times: list[tuple[int, float]]) -> str`` - this renders the core counts and times as a
+#. ``scaling_times_to_markdown(times: list[tuple[int, float]]) -> str`` - this renders the core counts and times as a
    three-column Markdown table with core count, time, and parallel efficiency
 
 Each function is passed the times as a list of tuples of core count and time taken.
