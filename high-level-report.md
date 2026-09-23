@@ -92,7 +92,7 @@ For this code, we tested with core counts in powers of 2 from 1 to 64.
 Hence, our 80% threshold is at `X` cores and our 60% threshold is at `Y` cores. As a proportion of the number of cores
 available, which is `Z` on the node this was run on, this gives a score of `X/Z` and `Y/Z`.
 
-<img src='../images/intranode.png' width=500 />
+<img src='images/intranode.png' width=500 />
 
 ## Inter-node Analysis
 
@@ -113,4 +113,4 @@ them.
 | Intra-node (80%) |       |               |
 | Inter-node (80%) |       |               |
 
-<img src='../images/summary.png' width=500 />
+<img src='images/summary.png' width=500 />

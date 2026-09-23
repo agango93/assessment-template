@@ -5,7 +5,7 @@ Usage
 Pre-assessment
 **************
 
-The `pre-assessment assessment report <../../reports/pre-assessment-report.md>`_ is to be completed using information provided
+The `pre-assessment assessment report <../../pre-assessment-report.md>`_ is to be completed using information provided
 by the submitter. The assessor must also report on their experiences with verifying the submitted code for the
 assessment, including the settings and parameters used.
 
@@ -26,7 +26,7 @@ the `performance assessment guidebook <https://shareing-dri.github.io/performanc
 `example report <../../examples/stencil-example-report.md>`_ is also provided.
 
 The ``high-level-plots.py`` script in the :ref:`assessmenttemplate` package can be used to
-create the plots and metric required to fill out the `high-level assessment report <../../reports/high-level-report.md>`_
+create the plots and metric required to fill out the `high-level assessment report <../../high-level-report.md>`_
 
 .. _assessmenttemplate:
 

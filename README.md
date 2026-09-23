@@ -18,9 +18,9 @@ be used for some of the rubrics in the high-level assessment.
 
 ## Pre-assessment
 
-The [pre-assessment report](reports/pre-assessment-report.md) is to be completed using information provided by the
-submitter. The assessor must also report on their experiences with verifying the submitted code for the assessment,
-including the settings and parameters used.
+The [pre-assessment report](pre-assessment-report.md) is to be completed using information provided by the submitter.
+The assessor must also report on their experiences with verifying the submitted code for the assessment, including the
+settings and parameters used.
 
 ## High-level performance assessment
 
@@ -37,7 +37,7 @@ the [performance assessment guidebook](https://shareing-dri.github.io/performanc
 `example report`](examples/stencil-example-report.md) is also provided.
 
 The `high-level-plots.py` script in the [`assessmenttemplate`](#the-assessmenttemplate-package) package can be used to
-create the plots and metric required to fill out the [high-level assessment report](reports/high-level-report.md).
+create the plots and metric required to fill out the [high-level assessment report](high-level-report.md).
 
 ## The `assessmenttemplate` package
 
