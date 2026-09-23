@@ -91,7 +91,7 @@ def scaling_times_to_graph(table: pd.DataFrame, internode=False, cat_plot=False,
             categories = list(table[proc].unique())
             p_crit_60 = categories.index(p_crit_60)
             p_crit_80 = categories.index(p_crit_80)
-        
+
         ax.axvline(x=p_crit_80, color="#ffc844", linestyle="--")
         ax.text(p_crit_80, 1.0, "80%", ha='right', va='top', rotation=90,
                 transform=ax.get_xaxis_transform())
@@ -99,7 +99,8 @@ def scaling_times_to_graph(table: pd.DataFrame, internode=False, cat_plot=False,
         ax.text(p_crit_60, 1.0, "60%", ha='right', va='top', rotation=90,
                 transform=ax.get_xaxis_transform())
 
-    ax.set_title(f"{"Inter-node weak" if internode else "Intra-node strong"} scaling efficiency", fontsize=14)
+    ax.set_title(f"{"Inter-node hybrid strong/weak" if internode else "Intra-node strong"} scaling efficiency",
+                 fontsize=14)
 
     return fig
 
