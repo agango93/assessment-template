@@ -50,18 +50,18 @@ the [performance assessment guidebook](https://shareing-dri.github.io/assets/pdf
 ## Table of contents
 
 - [SHAREing: High-level performance assessment report template](#shareing-high-level-performance-assessment-report-template)
-    - [Table of contents](#table-of-contents)
-    - [1. Setup Details](#1-setup-details)
-        - [1.1 Programming model](#11-programming-model)
-        - [1.2 SLURM configuration](#12-slurm-configuration)
-        - [1.3 Base input](#13-base-input)
-    - [2. Core-level assessment](#2-core-level-assessment)
-    - [3. Intra-node assessment](#3-intra-node-assessment)
-    - [4. Inter-node assessment](#4-inter-node-assessment)
-    - [5. GPU-performance assessment](#5-gpu-performance-assessment)
-    - [6. I/O Assessment](#6-io-assessment)
-    - [7. Summary](#7-summary)
-    - [8. High-level assessment outcome](#8-high-level-assessment-outcome)
+  - [Table of contents](#table-of-contents)
+  - [1. Setup Details](#1-setup-details)
+    - [1.1 Programming model](#11-programming-model)
+    - [1.2 SLURM configuration](#12-slurm-configuration)
+    - [1.3 Base input](#13-base-input)
+  - [2. Core-level assessment](#2-core-level-assessment)
+  - [3. Intra-node assessment](#3-intra-node-assessment)
+  - [4. Inter-node assessment](#4-inter-node-assessment)
+  - [5. GPU-performance assessment](#5-gpu-performance-assessment)
+  - [6. I/O Assessment](#6-io-assessment)
+  - [7. Summary](#7-summary)
+  - [8. High-level assessment outcome](#8-high-level-assessment-outcome)
 
 ## 1. Setup Details
 
@@ -295,30 +295,24 @@ The following command was used to obtain the metrics required:
 
 ```bash
 # Change accordingly for the code being assessed
-ncu --metrics "regex:sm__sass_thread_inst_executed_op_[A-Za-z]+_pred_on\.sum$" --csv --log-file ncu_metrics.csv $EXEC $INPUT
+ncu --metrics "regex:sm__sass_thread_inst_executed_op_fp\d\d_pred_on\.sum$" --csv --log-file ncu_metrics.csv $EXEC $INPUT
 ```
 
 > [!TIP]
 > For GPU + MPI configurations, include the `--target-processes all` flag for `ncu`.
 
-| Metric                                              | # operations |
-|-----------------------------------------------------|--------------|
-| `sm__sass_thread_inst_executed_op_dfma_pred_on.sum` |              |
-| `sm__sass_thread_inst_executed_op_dmul_pred_on.sum` |              |
-| `sm__sass_thread_inst_executed_op_ffma_pred_on.sum` |              |
-| `sm__sass_thread_inst_executed_op_fadd_pred_on.sum` |              |
-| `sm__sass_thread_inst_executed_op_fmul_pred_on.sum` |              |
-| `sm__sass_thread_inst_executed_op_fmul_pred_on.sum` |              |
-| `sm__sass_thread_inst_executed_op_hfma_pred_on.sum` |              |
-| `sm__sass_thread_inst_executed_op_hadd_pred_on.sum` |              |
-| `sm__sass_thread_inst_executed_op_hmul_pred_on.sum` |              |
+| Metric                                              |   # operations |
+|:----------------------------------------------------|---------------:|
+| `sm__sass_thread_inst_executed_op_fp16_pred_on.sum` |                |
+| `sm__sass_thread_inst_executed_op_fp32_pred_on.sum` |                |
+| `sm__sass_thread_inst_executed_op_fp64_pred_on.sum` |                |
+| Total                                               |                |
 
 The total runtime for the configuration without profiling was `<gpu_runtime>`.
 
 > [!IMPORTANT]
-> Total the number of operations for each category and use the runtime without profiling to get the observed floating
-> point rate. Add that to the table below along with the theoretical rate from the specifications of the GPU being used.
->
+> Use the runtime without profiling to get the observed floating point rate for the most dominant precision used. This can be obtained from the submitter, or use the precision with the largest number of operations. Add that to the table below along with the theoretical rate from the specifications of the GPU being used.
+
 The observed and theoretical floating point rates were:
 
 | Metric                   | MFLOPS                                             |

@@ -14,51 +14,30 @@ def gpu_read_metric_table(args) -> pd.DataFrame:
     """
 
     # Create list of metrics to be filtered from the overall CSV and assign the weight for those operations
-    metric_names = {}
-
-    for m in ["fma", "add", "mul"]:
-        for p in ["d", "f", "h"]:
-            weight = 1
-            # Fused multiply-add consists of two operations
-            if m == "fma":
-                weight *= 2
-            # Double-precision instructions are deemed to consist of two operations
-            if p == "d":
-                weight *= 2
-            # Half-precision instructions are deemed to consist of half an operation
-            elif p == "h":
-                weight *= 0.5
-
-            metric_names[f"sm__sass_thread_inst_executed_op_{p}{m}_pred_on.sum"] = weight
-
+    metric_names = [f"sm__sass_thread_inst_executed_op_fp{metric}_pred_on.sum" for metric in ["16", "32", "64"]]
     metrics = read_input_table(args)
 
     # Isolate metrics and their values
     metrics = metrics[["Metric Name", "Metric Value"]]
 
-    metrics = metrics.rename(columns={"Metric Name": "Metric", "Metric Value": "Value"})
+    metrics = metrics.rename(columns={"Metric Name": "Metric", "Metric Value": "# operations"})
 
     # Filter for relevant metrics
     # Ref: https://stackoverflow.com/questions/19960077/how-to-filter-pandas-dataframe-using-in-and-not-in-like-in-sql
-    metrics = metrics[metrics["Metric"].isin(metric_names.keys())]
+    metrics = metrics[metrics["Metric"].isin(metric_names)]
 
     # Remove any thousand separator commas
-    metrics["Value"] = metrics["Value"].apply(lambda x: x.replace(',', ''))
+    metrics["# operations"] = metrics["# operations"].apply(lambda x: x.replace(',', ''))
     # Convert number of operations to ints
-    metrics["Value"] = metrics["Value"].astype(int)
+    metrics["# operations"] = metrics["# operations"].astype(int)
 
     # Sum-up operations per metric across all kernel calls
     metrics = metrics.groupby(by=["Metric"], dropna=True).sum().reset_index()
 
-    # Assign the weight for metric
-    metrics["Weight"] = metrics.apply(lambda row: metric_names[row["Metric"]], axis=1)
-    # Compute total number of operations per metric based on weight and value
-    metrics["# operations"] = metrics["Value"] * metrics["Weight"]
-    # Format metric names in "code" style
     metrics["Metric"] = metrics["Metric"].apply(lambda x: f"`{x}`")
 
     # Add the total number of operations at the end of the table
-    metrics.loc[len(metrics)] = ["Total", metrics["Value"].sum(), "N/A", metrics["# operations"].sum()]
+    metrics.loc[len(metrics)] = ["Total", metrics["# operations"].sum()]
 
     return metrics
 

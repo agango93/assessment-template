@@ -46,6 +46,10 @@ def read_input_table(args) -> pd.DataFrame:
     else:
         print("Assuming CSV input")
 
+    # For the ncu metrics to remove the header lines
+    while lines[0][:2] == "==":
+        del lines[0]
+
     table = pd.read_csv(StringIO("\n".join(lines)))
 
     return table
