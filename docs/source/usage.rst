@@ -202,23 +202,17 @@ The module will then parse the input, filter for the `relevant metrics <../../hi
 profiled program, and produce a formatted Markdown table of the metrics:
 
 .. code-block:: md
+    
+    | Metric                                              |   # operations |
+    |:----------------------------------------------------|---------------:|
+    | `sm__sass_thread_inst_executed_op_fp16_pred_on.sum` |      139462784 |
+    | `sm__sass_thread_inst_executed_op_fp32_pred_on.sum` |      954130859 |
+    | `sm__sass_thread_inst_executed_op_fp64_pred_on.sum` |    24513873492 |
+    | Total                                               |    25607467135 |
 
-    | Metric                                              |       Value | Weight   |   # operations |
-    |:----------------------------------------------------|------------:|:---------|---------------:|
-    | `sm__sass_thread_inst_executed_op_dadd_pred_on.sum` |  1391994368 | 2.0      |    2.78399e+09 |
-    | `sm__sass_thread_inst_executed_op_dfma_pred_on.sum` | 16175594696 | 4.0      |    6.47024e+10 |
-    | `sm__sass_thread_inst_executed_op_dmul_pred_on.sum` |  6916239417 | 2.0      |    1.38325e+10 |
-    | `sm__sass_thread_inst_executed_op_fadd_pred_on.sum` |           0 | 1.0      |              0 |
-    | `sm__sass_thread_inst_executed_op_ffma_pred_on.sum` |    54003200 | 2.0      |    1.08006e+08 |
-    | `sm__sass_thread_inst_executed_op_fmul_pred_on.sum` |           0 | 1.0      |              0 |
-    | `sm__sass_thread_inst_executed_op_hadd_pred_on.sum` |           0 | 0.5      |              0 |
-    | `sm__sass_thread_inst_executed_op_hfma_pred_on.sum` |   139462784 | 1.0      |    1.39463e+08 |
-    | `sm__sass_thread_inst_executed_op_hmul_pred_on.sum` |           0 | 0.5      |              0 |
-    | Total                                               | 24677294465 | N/A      |    8.15663e+10 |
-
-The ``# operations`` value for ``Total`` is then used to compute the final GPU metric. The produced table, which can be
-printed to the terminal, written to the default file (``gpu_metrics.md``) with ``--default/-d`` or to one provided by the
-user via ``--output/-o``, can be copied to the high-level assessment report.
+The ``# operations`` value for the precision relevant for the assessed code is then used to compute the final GPU metric. 
+The produced table, which can be printed to the terminal, written to the default file (``gpu_metrics.md``) with ``--default/-d`` 
+or to one provided by the user via ``--output/-o``, can be copied to the high-level assessment report.
 
 
 .. _summary:
