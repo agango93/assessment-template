@@ -4,12 +4,12 @@ The following are hardware tables for systems based at Durham which are frequent
 
 ## Hamilton
 
-The hardware details for Hamilton are [available here](https://www.durham.ac.uk/research/institutes-and-centres/advanced-research-computing/hamilton-su/computer/systems/). This information is corroborated by running `cat /proc/cpuinfo` on one of the compute nodes via an interactive session. There are 120 standard compute nodes on the system:
+The hardware details for Hamilton are [available here](https://www.durham.ac.uk/research/institutes-and-centres/advanced-research-computing/hamilton-su/computer/systems/). This information is corroborated by running `cat /proc/cpuinfo` on one of the compute nodes via an interactive session:
 
 | Specification | Details |
 | -------------- | ------------------------------------------------ |
 | Number of compute nodes | Standard: 120; High-memory: 2 |
-| Processors | 2 $\times$ [AMD EPYC 7702 64-Core Processors](https://www.amd.com/en/support/downloads/drivers.html/processors/epyc/epyc-7002-series/amd-epyc-7702.html) |
+| Processors / node | 2 $\times$ [AMD EPYC 7702 64-Core Processors](https://www.amd.com/en/support/downloads/drivers.html/processors/epyc/epyc-7002-series/amd-epyc-7702.html) |
 | Clock speed / CPU | Base: 2000 MHz; Boost: 3350 MHz |
 | Sockets / node | 2 |
 | Cores / node | 64 |
@@ -29,3 +29,23 @@ Hamilton also has one GPU node with the following configuration verified with `c
 | GPUs | 8 NVIDIA H200 NVL |
 | RAM | 2.2 TB |
 | Local storage | 3 TB NVMe |
+
+## Bede
+
+The hardware details for Bede are [available here](https://bede-documentation.readthedocs.io/en/latest/hardware/index.html). This information is corroborated by running `cat /proc/cpuinfo` on one of the compute nodes via an interactive session:
+
+| Specification               | Details                                                                              |
+| --------------------------- | ------------------------------------------------------------------------------------ |
+| Processors / node           | 2 $\times$ [POWER9 CPU](https://www.redbooks.ibm.com/redbooks.nsf/pages/power9?Open) |
+| Clock speed / CPU           | Base: 2700 MHz; Boost: 3800 MHz                                                      |
+| Sockets / node              | 2                                                                                    |
+| Cores / socket              | 40                                                                                   |
+| NUMA domains / socket       | 1                                                                                    |
+| Cache                       | 32KB L1i/32KB L1d / core, 512KB L2 / core and 10MB L3 Cache size / 4-core chiplet    |
+| Simultaneous Multithreading | 4 threads / core                                                                     |
+| RAM / node                  | 512GB DDR4                                                                           |
+| GPUs / node                 | 4 $\times$ [Nvidia Tesla V100 32GB](https://images.nvidia.com/content/technologies/volta/pdf/volta-v100-datasheet-update-us-1165301-r5.pdf) |
+| GPU interconnect            | [NVLink](https://www.nvidia.com/en-gb/data-center/nvlink/) 2.0                       |
+| Interconnect                | 2 $\times$ Mellanox EDR (100Gbit/s) InfiniBand ports, organised in a 2:1 block fat tree topology |
+
+Additionally, there is the `infer` partition with Tesla T4 GPUs and 7 Grace Hopper nodes in a separate partition.
